@@ -4,7 +4,10 @@ import 'package:bus_alarm_app/service/app_service.dart';
 import 'package:bus_alarm_app/widget/popup/node_detail_popup.dart';
 import 'package:flutter/material.dart'; // Flutter UI 구성 요소
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google Maps Flutter 패키지
-import 'package:geolocator/geolocator.dart'; // 위치 정보 접근 패키지
+import 'package:geolocator/geolocator.dart';
+
+import '../model/bus_info_model.dart';
+import '../widget/modal/bottom_sheet_modal.dart'; // 위치 정보 접근 패키지
 
 
 class MapScreen extends StatefulWidget { // 상태가 있는 MapScreen 클래스 정의
@@ -23,7 +26,7 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
     _getCurrentLocation(); // 현재 위치를 가져옴
   }
 
-  void addMarker(LatLng _position, String _title, List<String> _busList) {// 마커 추가 메서드
+  void addMarker(LatLng _position, String _title, List<BusInfo> _busList) {// 마커 추가 메서드
     setState(() { // 상태 변경
       _markers.add( // 마커 추가
         Marker(
@@ -88,18 +91,17 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
         fetchBusInfo(LatLng(position.latitude, position.longitude), addMarker);
       });
     });
-
   }
 
   void _onMapCreated(GoogleMapController controller) { // 지도 생성 시 호출되는 메서드
     mapController = controller; // Google Map 컨트롤러 설정
   }
 
-  void _onMarkerTapped(String markerTitle, List<String> busList) {
-    showDialog(
+  void _onMarkerTapped(String markerTitle, List<BusInfo> busList) {
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return NodeDetailPopup(busList: busList, nodenm: markerTitle);
+      builder: (BuildContext context) {
+        return BottomSheetModal(busList: busList, nodenm: markerTitle); // MyBottomSheet를 호출
       },
     );
   }
