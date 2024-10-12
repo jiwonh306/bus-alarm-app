@@ -1,7 +1,9 @@
+import 'package:bus_alarm_app/model/bus_route_info_model.dart';
 import 'package:bus_alarm_app/model/route_info_model.dart';
 import 'package:flutter/material.dart';
 
 import '../../model/bus_info_model.dart';
+import '../../screen/route_screen.dart';
 import '../../service/app_service.dart';
 
 class BottomSheetModal extends StatelessWidget {
@@ -43,8 +45,12 @@ class BottomSheetModal extends StatelessWidget {
                       ),
                     ),
                     onTap: () async {
-                      List<RouteInfo> routeList = await getnodenm(bus.cityCode, bus.routeId);
-                      print(routeList);
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => RouteScreen(),
+                      ),);
+                      /*RouteInfo? route = await getnodenm(bus.cityCode, bus.routeId);
+                      Future<List<BusRouteInfo>> broute = busroute(bus.cityCode, bus.routeId);
+                      print(broute.toString());*/
                     },
                   ),
                 );
