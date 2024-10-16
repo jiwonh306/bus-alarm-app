@@ -1,5 +1,7 @@
 import 'dart:developer'; // 로깅을 위한 패키지
 
+import 'package:bus_alarm_app/model/bus_route_info_model.dart';
+import 'package:bus_alarm_app/model/bus_station_info_model.dart';
 import 'package:bus_alarm_app/service/app_service.dart';
 import 'package:bus_alarm_app/widget/popup/node_detail_popup.dart';
 import 'package:flutter/material.dart'; // Flutter UI 구성 요소
@@ -17,7 +19,7 @@ class MapScreen extends StatefulWidget { // 상태가 있는 MapScreen 클래스
 
 class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 클래스
   late GoogleMapController mapController; // Google Map 컨트롤러
-  LatLng _currentPosition = const LatLng(37.34173241575176, 126.83166740085191); // 초기 서울 좌표
+  LatLng _currentPosition = const LatLng(37.49011964712499, 126.9546344219442 ); // 초기 서울 좌표
   final Set<Marker> _markers = {}; // 지도에 표시할 마커 세트
 
   @override
@@ -72,8 +74,8 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high); // 높은 정확도로 위치 가져오기
     setState(() { // 상태 변경
-      //_currentPosition = LatLng(position.latitude, position.longitude);
-      fetchBusInfo(_currentPosition, addMarker);
+      _currentPosition = LatLng(position.latitude, position.longitude);
+      getStationByPos(_currentPosition, addMarker);
       // 현재 위치 업데이트
       // 지도 카메라를 현재 위치로 이동
       mapController.animateCamera(
@@ -88,7 +90,7 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
       ),
     ).listen((Position position) {
       setState(() {
-        fetchBusInfo(LatLng(position.latitude, position.longitude), addMarker);
+        getStationByPos(LatLng(position.latitude, position.longitude), addMarker);
       });
     });
   }
@@ -101,7 +103,7 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return BottomSheetModal(busList: busList, nodenm: markerTitle); // MyBottomSheet를 호출
+        return BottomSheetModal(busList: busList, stationNm: markerTitle); // MyBottomSheet를 호출
       },
     );
   }

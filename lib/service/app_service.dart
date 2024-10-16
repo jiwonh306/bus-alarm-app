@@ -1,4 +1,5 @@
 import 'package:bus_alarm_app/model/bus_info_model.dart';
+import 'package:bus_alarm_app/model/bus_station_info_model.dart';
 import 'package:bus_alarm_app/model/route_info_model.dart';
 import 'package:bus_alarm_app/util/second_to_minute_util.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +9,8 @@ import 'dart:io'; // HTTP 요청을 위한 패키지
 import 'package:http/http.dart' as http; // HTTP 요청 라이브러리
 import 'package:xml2json/xml2json.dart';
 
-import '../model/bus_route_info_model.dart'; // XML을 JSON으로 변환하기 위한 패키지
+import '../model/bus_route_info_model.dart';
+import '../util/bus_type_change.dart'; // XML을 JSON으로 변환하기 위한 패키지
 
 Future<void> getArrInfoByRouteAll() async { // 특정 버스 노선의 도착 정보 가져오기
   try {
@@ -32,15 +34,15 @@ Future<void> getArrInfoByRouteAll() async { // 특정 버스 노선의 도착 �
   }
 }
 
-Future<void> fetchBusInfo(LatLng _currentPosition, Function callback) async { // 주변 버스 정류장 정보 가져오기
+Future<void> getStationByPos(LatLng _currentPosition, Function callback) async { // 주변 버스 정류장 정보 가져오기
+  List<BusStationInfo> busstationList = [];
   try {
-    final url = Uri.parse('http://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList'
+    final url = Uri.parse('http://ws.bus.go.kr/api/rest/stationinfo/getStationByPos'
         '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
-        '&pageNo=1'
-        '&numOfRows=10'
-        '&_type=json'
-        '&gpsLati=${_currentPosition.latitude}' // 현재 위치의 위도
-        '&gpsLong=${_currentPosition.longitude}'); // 현재 위치의 경도
+        '&tmX=${_currentPosition.longitude}' // 현재 위치의 경도
+        '&tmY=${_currentPosition.latitude}' // 현재 위치의 위도
+        '&radius=200'
+        '&resultType=json');
     final response = await http.get(url, headers: {
       HttpHeaders.contentTypeHeader: 'application/json', // 요청 헤더 설정
     });
@@ -48,20 +50,33 @@ Future<void> fetchBusInfo(LatLng _currentPosition, Function callback) async { //
       final decodedBody = utf8.decode(response.bodyBytes); // 응답 본문 디코딩
 
       Map<String, dynamic> jsonResponse = jsonDecode(decodedBody); // JSON 디코딩
-      List<dynamic> items = jsonResponse['response']['body']['items']['item']; // 정류장 정보 목록
-      items.forEach((item) async { // 각 정류장에 대해
-        String gpslati = item['gpslati'].toString(); // 위도
-        String gpslong = item['gpslong'].toString(); // 경도
-        String nodenm = item['nodenm'].toString(); // 정류장 이름
-        String citycode = item['citycode'].toString(); // 도시코드
-        String nodeid = item['nodeid'].toString();
+      List<dynamic> items = jsonResponse['msgBody']['itemList']; // 정류장 정보 목록
 
-        List<BusInfo> busList = await route(citycode, nodeid);
-
-
-
-        callback(LatLng(double.parse(gpslati), double.parse(gpslong)), nodenm, busList); // 마커 추가
+      items.forEach((item) async {
+        String arsId = item['arsId'].toString(); //정류소 번호
+        String posX = item['posX'].toString(); //정류소 좌표X (GRS80)
+        String posY = item['posY'].toString(); //정류소 좌표Y (GRS80)
+        String dist = item['dist'].toString(); //거리
+        String gpsX = item['gpsX'].toString(); //정류소 좌표X (WGS84)
+        String gpsY = item['gpsY'].toString(); //정류소 좌표Y (WGS84)
+        String stationTp = item['stationTp'].toString(); //정류소타입
+        String stationNm = item['stationNm'].toString(); //정류소명
+        String stationId = item['stationId'].toString(); //정류소 고유 ID
+        busstationList.add(BusStationInfo(
+            arsId: arsId,
+            posX: posX,
+            posY: posY,
+            dist: dist,
+            gpsX: gpsX,
+            gpsY: gpsY,
+            stationTp: stationTp,
+            stationNm: stationNm,
+            stationId: stationId
+        ));
+        List<BusInfo> busList = await getStationByUid(arsId);
+        callback(LatLng(double.parse(gpsY), double.parse(gpsX)), stationNm, busList);
       });
+
     } else {
       print('Error: ${response.statusCode} ${response.reasonPhrase}'); // 오류 처리
     }
@@ -70,16 +85,13 @@ Future<void> fetchBusInfo(LatLng _currentPosition, Function callback) async { //
   }
 }
 
-Future<List<BusInfo>> route(String cityCode, String nodeID) async {
+Future<List<BusInfo>> getStationByUid(String arsId) async {
   List<BusInfo> busList = [];
   try {
-    final url = Uri.parse('http://apis.data.go.kr/1613000/ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList'
+    final url = Uri.parse('http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
         '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
-        '&pageNo=1'
-        '&numOfRows=10'
-        '&_type=json'
-        '&cityCode=$cityCode'
-        '&nodeId=$nodeID'
+        '&arsId=$arsId'
+        '&resultType=json'
     );
 
     final response = await http.get(url, headers: {
@@ -89,27 +101,107 @@ Future<List<BusInfo>> route(String cityCode, String nodeID) async {
     if (response.statusCode >= 200 && response.statusCode <= 300) {
       final decodedBody = utf8.decode(response.bodyBytes);
       Map<String, dynamic> jsonResponse = jsonDecode(decodedBody);
-      List<dynamic> items = jsonResponse['response']['body']['items']['item'];
+      List<dynamic> items = jsonResponse['msgBody']['itemList'];;
 
       items.forEach((item) {
-        String nodeId = item['nodeid'].toString(); // 정류소ID
-        String nodeNm = item['nodenm'].toString(); // 정류소명
-        String routeNo = item['routeno'].toString(); // 노선번호
-        String routeTp = item['routetp'].toString(); // 노선유형
-        String arrPrevStationCnt = item['arrprevstationcnt'].toString(); // 남은 정류장 수
-        String vehicleTp = item['vehicletp'].toString(); // 차량유형
-        String arrTime = convertSecondsToMinutes(item['arrtime'].toInt()); // 도착예상시간
-        String routeId = item['routeid'].toString();
+        String adirection = item['adirection'].toString();
+        String arrmsg1 = item['arrmsg1'].toString();
+        String arrmsg2 = item['arrmsg2'].toString();
+        String arrmsgSec1 = item['arrmsgSec1'].toString();
+        String arrmsgSec2 = item['arrmsgSec2'].toString();
+        String busRouteId = item['busRouteId'].toString();
+        String busType1 = item['busType1'].toString();
+        String busType2 = item['busType2'].toString();
+        String firstTm = item['firstTm'].toString();
+        String isArrive1 = item['isArrive1'].toString();
+        String isArrive2 = item['isArrive2'].toString();
+        String isFullFlag1 = item['isFullFlag1'].toString();
+        String isFullFlag2 = item['isFullFlag2'].toString();
+        String isLast1 = item['isLast1'].toString();
+        String isLast2 = item['isLast2'].toString();
+        String lastTm = item['lastTm'].toString();
+        String nextBus = item['nextBus'].toString();
+        String nxtStn = item['nxtStn'].toString();
+        String posX = item['posX'].toString();
+        String posY = item['posY'].toString();
+        String repTm1 = item['repTm1'].toString();
+        String repTm2 = item['repTm2'].toString();
+        String rerdieDiv1 = item['rerdieDiv1'].toString();
+        String rerdieDiv2 = item['rerdieDiv2'].toString();
+        String rerideNum1 = item['rerideNum1'].toString();
+        String rerideNum2 = item['rerideNum2'].toString();
+        String routeType = item['routeType'].toString();
+        String rtNm = item['rtNm'].toString();
+        String sectNm = item['sectNm'].toString();
+        String sectOrd1 = item['sectOrd1'].toString();
+        String sectOrd2 = item['sectOrd2'].toString();
+        String gpsX = item['gpsX'].toString();
+        String gpsY = item['gpsY'].toString();
+        String stationTp = item['stationTp'].toString();
+        String arsId = item['arsId'].toString();
+        String staOrd = item['staOrd'].toString();
+        String stationNm1 = item['stationNm1'].toString();
+        String stationNm2 = item['stationNm2'].toString();
+        String stId = item['stId'].toString();
+        String stNm = item['stNm'].toString();
+        String term = item['term'].toString();
+        String traSpd1 = item['traSpd1'].toString();
+        String traSpd2 = item['traSpd2'].toString();
+        String traTime1 = item['traTime1'].toString();
+        String traTime2 = item['traTime2'].toString();
+        String vehId1 = item['vehId1'].toString();
+        String vehId2 = item['vehId2'].toString();
+        String deTourAt = item['deTourAt'].toString();
         busList.add(BusInfo(
-            nodeId: nodeId,
-            nodeNm: nodeNm,
-            routeNo: routeNo,
-            routeTp: routeTp,
-            arrPrevStationCnt: arrPrevStationCnt,
-            vehicleTp: vehicleTp,
-            arrTime: arrTime,
-            cityCode: cityCode,
-            routeId: routeId));
+            adirection: adirection,
+            arrmsg1: arrmsg1,
+            arrmsg2: arrmsg2,
+            arrmsgSec1: arrmsgSec1,
+            arrmsgSec2: arrmsgSec2,
+            busRouteId: busRouteId,
+            busType1: busType1,
+            busType2: busType2,
+            firstTm: firstTm,
+            isArrive1: isArrive1,
+            isArrive2: isArrive2,
+            isFullFlag1: isFullFlag1,
+            isFullFlag2: isFullFlag2,
+            isLast1: isLast1,
+            isLast2: isLast2,
+            lastTm: lastTm,
+            nextBus: nextBus,
+            nxtStn: nxtStn,
+            posX: posX,
+            posY: posY,
+            repTm1: repTm1,
+            repTm2: repTm2,
+            rerdieDiv1: rerdieDiv1,
+            rerdieDiv2: rerdieDiv2,
+            rerideNum1: rerideNum1,
+            rerideNum2: rerideNum2,
+            routeType: routeType,
+            rtNm: rtNm,
+            sectNm: sectNm,
+            sectOrd1: sectOrd1,
+            sectOrd2: sectOrd2,
+            gpsX: gpsX,
+            gpsY: gpsY,
+            stationTp: stationTp,
+            arsId: arsId,
+            staOrd: staOrd,
+            stationNm1: stationNm1,
+            stationNm2: stationNm2,
+            stId: stId,
+            stNm: stNm,
+            term: term,
+            traSpd1: traSpd1,
+            traSpd2: traSpd2,
+            traTime1: traTime1,
+            traTime2: traTime2,
+            vehId1: vehId1,
+            vehId2: vehId2,
+            deTourAt: deTourAt));
+        print(busRouteId);
       });
     } else {
       print('Error: ${response.statusCode} ${response.reasonPhrase}');
@@ -120,67 +212,14 @@ Future<List<BusInfo>> route(String cityCode, String nodeID) async {
   return busList;
 }
 
-Future<RouteInfo?> getnodenm(String cityCode, String routeID) async { // 주변 버스 정류장 정보 가져오기
-  RouteInfo? route;
-  try {
-    final url = Uri.parse('http://apis.data.go.kr/1613000/BusRouteInfoInqireService/getRouteInfoIem'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
-        '&_type=json'
-        '&cityCode=$cityCode'
-        '&routeId=$routeID'
-    );
-    final response = await http.get(url, headers: {
-      HttpHeaders.contentTypeHeader: 'application/json', // 요청 헤더 설정
-    });
-    if (response.statusCode >= 200 && response.statusCode <= 300) { // 요청 성공 여부 확인
-     final decodedBody = utf8.decode(response.bodyBytes); // 응답 본문 디코딩
 
-      Map<String, dynamic> jsonResponse = jsonDecode(decodedBody); // JSON 디코딩
-      var item = jsonResponse['response']['body']['items']['item'];
-      //List<dynamic> items = jsonResponse['response']['body']['items']['item']; // 정류장 정보 목록
-      String routeId = item['routeid'].toString(); // 정류소ID
-      String routeNo = item['routeno'].toString(); // 정류소명
-      String routeTp = item['routetp'].toString(); // 노선번호
-      String endnodeNm = item['endnodenm'].toString(); // 노선유형
-      String startnodeNm = item['startnodenm'].toString(); // 남은 정류장 수
-      String endvehicleTime = item['endvehicletime,'].toString(); // 차량유형
-      String startvehicleTime = item['startvehicletime'].toString(); // 도착예상시간
-      String intervalTime = item['intervaltime'].toString();
-      String intervalsatTime = item['intervalsattime'].toString();
-      String intervalsunTime = item['intervalsuntime'].toString();
-
-      route = RouteInfo(
-          routeid: routeId,
-          routeno: routeNo,
-          routetp: routeTp,
-          endnodenm: endnodeNm,
-          startnodenm: startnodeNm,
-          endvehicletime: endvehicleTime,
-          startvehicletime: startvehicleTime,
-          intervaltime: intervalTime,
-          intervalsattime: intervalsatTime,
-          intervalsuntime: intervalsunTime
-      );
-
-    } else {
-      print('Error: ${response.statusCode} ${response.reasonPhrase}'); // 오류 처리
-    }
-  } catch (e) {
-    print('Exception: $e');
-  }
-  return route;
-}
-
-Future<List<BusRouteInfo>> busroute(String cityCode, String routeID) async {
+Future<List<BusRouteInfo>> getRouteInfo(String busRouteId) async {
   List<BusRouteInfo> busrouteList = [];
   try {
-    final url = Uri.parse('http://apis.data.go.kr/1613000/BusRouteInfoInqireService/getRouteAcctoThrghSttnList'
+    final url = Uri.parse('http://ws.bus.go.kr/api/rest/busRouteInfo/getRouteInfo'
         '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
-        '&pageNo=1'
-        '&numOfRows=10'
-        '&_type=json'
-        '&cityCode=$cityCode'
-        '&routeId=$routeID'
+        '&busRouteId=$busRouteId'
+        '&resultType=json'
     );
 
     final response = await http.get(url, headers: {
@@ -190,26 +229,37 @@ Future<List<BusRouteInfo>> busroute(String cityCode, String routeID) async {
     if (response.statusCode >= 200 && response.statusCode <= 300) {
       final decodedBody = utf8.decode(response.bodyBytes);
       Map<String, dynamic> jsonResponse = jsonDecode(decodedBody);
-      List<dynamic> items = jsonResponse['response']['body']['items']['item'];
-      print(items);
+      List<dynamic> items = jsonResponse['msgBody']['itemList'];
+
       items.forEach((item) {
-        String routeId = item['routeid'].toString(); // 정류소ID
-        String nodeId = item['nodeid'].toString(); // 정류소명
-        String nodeNm = item['nodenm'].toString(); // 노선번호
-        String nodeNo = item['nodeno'].toString(); // 노선유형
-        String nodeOrd = item['nodeord'].toString(); // 남은 정류장 수
-        String gpslati = item['gpslati'].toString(); // 차량유형
-        String gpslong = item['gpslong'].toString(); // 도착예상시간
-        String updowncd = item['updowncd'].toString();
+        String busRouteNm = item['busRouteNm'].toString();
+        String length = item['length'].toString();
+        String routeType = item['routeType'].toString();
+        String stStationNm = item['stStationNm'].toString();
+        String edStationNm = item['edStationNm'].toString();
+        String term = item['term'].toString();
+        String lastBusYn = item['lastBusYn'].toString();
+        String lastBusTm = item['lastBusTm'].toString();
+        String firstBusTm = item['firstBusTm'].toString();
+        String lastLowTm = item['lastLowTm'].toString();
+        String firstLowTm = item['firstLowTm'].toString();
+        String busRouteId = item['busRouteId'].toString();
+        String corpNm = item['corpNm'].toString();
         busrouteList.add(BusRouteInfo(
-            routeId: routeId,
-            nodeId: nodeId,
-            nodeNm: nodeNm,
-            nodeNo: nodeNo,
-            nodeOrd: nodeOrd,
-            gpslati: gpslati,
-            gpslong: gpslong,
-            updowncd: updowncd));
+            busRouteNm: busRouteNm,
+            length: length,
+            routeType: routeType,
+            stStationNm: stStationNm,
+            edStationNm: edStationNm,
+            term: term,
+            lastBusYn: lastBusYn,
+            lastBusTm: lastBusTm,
+            firstBusTm: firstBusTm,
+            lastLowTm: lastLowTm,
+            firstLowTm: firstLowTm,
+            busRouteId: busRouteId,
+            corpNm: corpNm
+            ));
       });
     } else {
       print('Error: ${response.statusCode} ${response.reasonPhrase}');
@@ -218,4 +268,75 @@ Future<List<BusRouteInfo>> busroute(String cityCode, String routeID) async {
     print('Exception: $e');
   }
   return busrouteList;
+}
+
+Future<List<RouteInfo>> getStaionByRoute(String busRouteId) async {
+  List<RouteInfo> routeList = [];
+  try {
+    final url = Uri.parse('http://ws.bus.go.kr/api/rest/busRouteInfo/getStaionByRoute'
+        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '&busRouteId=$busRouteId'
+        '&resultType=json'
+    );
+
+    final response = await http.get(url, headers: {
+      HttpHeaders.contentTypeHeader: 'application/json',
+    });
+
+    if (response.statusCode >= 200 && response.statusCode <= 300) {
+      final decodedBody = utf8.decode(response.bodyBytes);
+      Map<String, dynamic> jsonResponse = jsonDecode(decodedBody);
+      List<dynamic> items = jsonResponse['msgBody']['itemList'];;
+
+      items.forEach((item) {
+        String busRouteId = item['busRouteId'].toString();
+        String busRouteNm = item['busRouteNm'].toString();
+        String seq = item['seq'].toString();
+        String section = item['section'].toString();
+        String station = item['station'].toString();
+        String stationNm = item['stationNm'].toString();
+        String gpsX = item['gpsX'].toString();
+        String gpsY = item['gpsY'].toString();
+        String direction = item['direction'].toString();
+        String stationNo = item['stationNo'].toString();
+        String routeType = item['routeType'].toString();
+        String beginTm = item['beginTm'].toString();
+        String lastTm = item['lastTm'].toString();
+        String posX = item['posX'].toString();
+        String posY = item['posY'].toString();
+        String arsId = item['arsId'].toString();
+        String transYn = item['transYn'].toString();
+        String trnstnid = item['trnstnid'].toString();
+        String sectSpd = item['sectSpd'].toString();
+        String fullSectDist = item['fullSectDist'].toString();
+        routeList.add(RouteInfo(
+            busRouteId: busRouteId,
+            busRouteNm: busRouteNm,
+            seq: seq,
+            section: section,
+            station: station,
+            stationNm: stationNm,
+            gpsX: gpsX,
+            gpsY: gpsY,
+            direction: direction,
+            stationNo: stationNo,
+            routeType: routeType,
+            beginTm: beginTm,
+            lastTm: lastTm,
+            posX: posX,
+            posY: posY,
+            arsId: arsId,
+            transYn: transYn,
+            trnstnid: trnstnid,
+            sectSpd: sectSpd,
+            fullSectDist: fullSectDist
+        ));
+      });
+    } else {
+      print('Error: ${response.statusCode} ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    print('Exception: $e');
+  }
+  return routeList;
 }

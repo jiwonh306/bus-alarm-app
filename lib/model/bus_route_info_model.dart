@@ -1,20 +1,30 @@
 class BusRouteInfo {
-  final String routeId;
-  final String nodeId;
-  final String nodeNm;
-  final String nodeNo;
-  final String nodeOrd;
-  final String gpslati;
-  final String gpslong;
-  final String updowncd;
+  final String busRouteNm; //
+  final String length; //
+  final String routeType; //
+  final String stStationNm;  // 종점
+  final String edStationNm;      // 기점
+  final String term;
+  final String lastBusYn;
+  final String lastBusTm;
+  final String firstBusTm;
+  final String lastLowTm;
+  final String firstLowTm;
+  final String busRouteId;
+  final String corpNm;
   BusRouteInfo({
-    required this.routeId,
-    required this.nodeId,
-    required this.nodeNm,
-    required this.nodeNo,
-    required this.nodeOrd,
-    required this.gpslati,
-    required this.gpslong,
-    required this.updowncd
+    required this.busRouteNm,
+    required this.length,
+    required this.routeType,
+    required this.stStationNm,
+    required this.edStationNm,
+    required this.term,
+    required this.lastBusYn,
+    required this.lastBusTm,
+    required this.firstBusTm,
+    required this.lastLowTm,
+    required this.firstLowTm,
+    required this.busRouteId,
+    required this.corpNm
   });
 }
