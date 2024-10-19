@@ -13,6 +13,7 @@ class BottomSheetModal extends StatelessWidget {
   final List<BusInfo> busList;
   late Future<List<BusRouteInfo>> busrouteList;
   late Future<List<RouteInfo>> routeList;
+  late Future<List<String>> busPosList;
   final String stationNm;
 
   BottomSheetModal({required this.busList, required this.stationNm});
@@ -53,19 +54,19 @@ class BottomSheetModal extends StatelessWidget {
                     onTap: () async {
                       busrouteList = getRouteInfo(bus.busRouteId);
                       busrouteList.then((busroute){
-
                         final BusRouteInfo busrouteinfo = busroute[0];
                         routeList = getStaionByRoute(bus.busRouteId);
                         routeList.then((route){
+
                           final List<RouteInfo> routeinfo = route;
-                          Navigator.push(context, MaterialPageRoute(
-                            builder: (context) => RouteScreen(busRouteInfo: busrouteinfo, routeInfo: routeinfo,),
-                          ),);
+                          busPosList = getBusPosByRouteSt(bus.busRouteId, route.length.toString());
+                          busPosList.then((buspos){
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => RouteScreen(busRouteInfo: busrouteinfo, routeInfo: routeinfo, busPosList: buspos,),
+                            ),);
+                          });
                         });
                       });
-                      /*RouteInfo? route = await getnodenm(bus.cityCode, bus.routeId);
-                      Future<List<BusRouteInfo>> broute = busroute(bus.cityCode, bus.routeId);
-                      print(broute.toString());*/
                     },
                   ),
                 );

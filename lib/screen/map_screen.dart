@@ -112,7 +112,7 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
   Widget build(BuildContext context) { // UI 빌드 메서드
     return Scaffold( // 기본 구조
       appBar: AppBar( // 앱바
-        title: Text('현재 위치 가져오기'), // 앱 제목
+        title: Text('정류장 찾기'), // 앱 제목
       ),
       body: GoogleMap( // Google Map 위젯
         onMapCreated: _onMapCreated, // 지도 생성 시 호출

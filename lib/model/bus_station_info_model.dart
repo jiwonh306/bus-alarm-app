@@ -19,4 +19,20 @@ class BusStationInfo {
     required this.stationNm,
     required this.stationId
   });
+
+  Map<String, dynamic> toJson() => {
+    'arsId': arsId,
+    'posX': posX,
+    'posY': posX,
+    'dist': dist,
+    'gpsX': gpsX,
+    'gpsY': gpsY,
+    'stationTp': stationTp,
+    'stationNm': stationNm,
+    'stationId': stationId,
+  };
+
+  static BusStationInfo fromJson(Map<String, dynamic> json) {
+    return BusStationInfo(arsId: json['arsId'], posX: json['posX'], posY: json['posY'], dist: json['dist'], gpsX: json['gpsX'], gpsY: json['gpsY'], stationTp: json['stationTp'], stationNm: json['stationNm'], stationId: json['stationId'], );
+  }
 }

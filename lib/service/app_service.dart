@@ -340,3 +340,38 @@ Future<List<RouteInfo>> getStaionByRoute(String busRouteId) async {
   }
   return routeList;
 }
+
+Future<List<String>> getBusPosByRouteSt(String busRouteId, String endOrd) async {
+  List<String> busPosList = [];
+  try {
+    final url = Uri.parse('http://ws.bus.go.kr/api/rest/buspos/getBusPosByRouteSt'
+        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '&busRouteId=$busRouteId'
+        '&startOrd=1'
+        '&endOrd=$endOrd'
+        '&resultType=json'
+    );
+
+    final response = await http.get(url, headers: {
+      HttpHeaders.contentTypeHeader: 'application/json',
+    });
+
+    if (response.statusCode >= 200 && response.statusCode <= 300) {
+      final decodedBody = utf8.decode(response.bodyBytes);
+      Map<String, dynamic> jsonResponse = jsonDecode(decodedBody);
+      List<dynamic> items = jsonResponse['msgBody']['itemList'];
+
+      items.forEach((item) {
+        String sectOrd = item['sectOrd'].toString();
+        busPosList.add(
+          sectOrd
+        );
+      });
+    } else {
+      print('Error: ${response.statusCode} ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    print('Exception: $e');
+  }
+  return busPosList;
+}
