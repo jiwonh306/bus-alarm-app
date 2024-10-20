@@ -1,14 +1,11 @@
-import 'dart:developer'; // 로깅을 위한 패키지
-
-import 'package:bus_alarm_app/model/bus_route_info_model.dart';
 import 'package:bus_alarm_app/model/bus_station_info_model.dart';
 import 'package:bus_alarm_app/service/app_service.dart';
-import 'package:bus_alarm_app/widget/popup/node_detail_popup.dart';
 import 'package:flutter/material.dart'; // Flutter UI 구성 요소
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google Maps Flutter 패키지
 import 'package:geolocator/geolocator.dart';
 
 import '../model/bus_info_model.dart';
+import '../service/local_storage_service.dart';
 import '../widget/modal/bottom_sheet_modal.dart'; // 위치 정보 접근 패키지
 
 
@@ -28,18 +25,21 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
     _getCurrentLocation(); // 현재 위치를 가져옴
   }
 
-  void addMarker(LatLng _position, String _title, List<BusInfo> _busList) {// 마커 추가 메서드
+  void addMarker(BusStationInfo _busStation) {
+    LatLng position = LatLng(double.parse(_busStation.gpsY), double.parse(_busStation.gpsX));
+    String title = _busStation.stationNm;
+
     setState(() { // 상태 변경
       _markers.add( // 마커 추가
         Marker(
-            markerId: MarkerId(_position.toString()), // 마커 ID 설정
-            position: _position, // 마커 위치
+            markerId: MarkerId(position.toString()), // 마커 ID 설정
+            position: position, // 마커 위치
             infoWindow: InfoWindow( // 마커 정보창
-              title: _title,
+              title: title,
             ),
             icon: BitmapDescriptor.defaultMarker, // 기본 마커 아이콘
             onTap: (){
-              _onMarkerTapped(_title, _busList);
+              _onMarkerTapped(_busStation);
             }
         ),
       );
@@ -99,13 +99,18 @@ class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 �
     mapController = controller; // Google Map 컨트롤러 설정
   }
 
-  void _onMarkerTapped(String markerTitle, List<BusInfo> busList) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return BottomSheetModal(busList: busList, stationNm: markerTitle); // MyBottomSheet를 호출
-      },
-    );
+  Future<void> _onMarkerTapped(BusStationInfo busStation) async {
+    List<BusInfo> busList = await getStationByUid(busStation.arsId);
+    BookmarkService bookmarkService = BookmarkService();
+    
+    bookmarkService.loadBookmarks().then((likeList) {
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return BottomSheetModal(busList: busList, busStation: busStation, initLikeList: likeList); // MyBottomSheet를 호출
+        },
+      );
+    });
   }
 
   @override

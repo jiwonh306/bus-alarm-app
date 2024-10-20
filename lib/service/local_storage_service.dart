@@ -5,8 +5,7 @@ import 'dart:convert';
 class BookmarkService {
   Future<void> saveBookmarks(List<BusStationInfo> busstationList) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> jsonList =
-    busstationList.map((bookmark) => json.encode(bookmark.toJson())).toList();
+    List<String> jsonList = busstationList.map((bookmark) => json.encode(bookmark.toJson())).toList();
     await prefs.setStringList('bookmarks', jsonList);
   }
 

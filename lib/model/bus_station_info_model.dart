@@ -8,6 +8,7 @@ class BusStationInfo {
   final String stationTp; //정류소타입
   final String stationNm; //정류소명
   final String stationId; //정류소 고유 ID
+
   BusStationInfo({
     required this.arsId,
     required this.posX,
@@ -17,7 +18,7 @@ class BusStationInfo {
     required this.gpsY,
     required this.stationTp,
     required this.stationNm,
-    required this.stationId
+    required this.stationId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -33,6 +34,6 @@ class BusStationInfo {
   };
 
   static BusStationInfo fromJson(Map<String, dynamic> json) {
-    return BusStationInfo(arsId: json['arsId'], posX: json['posX'], posY: json['posY'], dist: json['dist'], gpsX: json['gpsX'], gpsY: json['gpsY'], stationTp: json['stationTp'], stationNm: json['stationNm'], stationId: json['stationId'], );
+    return BusStationInfo(arsId: json['arsId'], posX: json['posX'], posY: json['posY'], dist: json['dist'], gpsX: json['gpsX'], gpsY: json['gpsY'], stationTp: json['stationTp'], stationNm: json['stationNm'], stationId: json['stationId']);
   }
 }

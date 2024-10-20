@@ -1,36 +1,35 @@
 import 'package:bus_alarm_app/model/bus_info_model.dart';
 import 'package:bus_alarm_app/model/bus_station_info_model.dart';
 import 'package:bus_alarm_app/model/route_info_model.dart';
-import 'package:bus_alarm_app/util/second_to_minute_util.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google Maps Flutter 패키지
-import 'dart:convert'; // JSON 인코딩 및 디코딩을 위한 패키지
-import 'dart:io'; // HTTP 요청을 위한 패키지
-import 'package:http/http.dart' as http; // HTTP 요청 라이브러리
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:xml2json/xml2json.dart';
 
+
+
 import '../model/bus_route_info_model.dart';
-import '../util/bus_type_change.dart'; // XML을 JSON으로 변환하기 위한 패키지
 
 Future<void> getArrInfoByRouteAll() async { // 특정 버스 노선의 도착 정보 가져오기
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRouteAll'
         '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
-        '&busRouteId=100100016'); // API URL 생성
+        '&busRouteId=100100016');
     final response = await http.get(url, headers: {
-      HttpHeaders.contentTypeHeader: 'application/json', // 요청 헤더 설정
+      HttpHeaders.contentTypeHeader: 'application/json',
     });
-    if (response.statusCode >= 200 && response.statusCode <= 300) { // 요청 성공 여부 확인
-      final Xml2Json xml2json = Xml2Json(); // XML을 JSON으로 변환하기 위한 객체 생성
-      xml2json.parse(response.body); // XML 파싱
-      String jsonString = xml2json.toParker(); // JSON 문자열로 변환
-      var jsonData = jsonDecode(jsonString); // JSON 디코딩
-      print('BUS_API_TEST: ${jsonData}'); // 결과 출력
+    if (response.statusCode >= 200 && response.statusCode <= 300) {
+      final Xml2Json xml2json = Xml2Json();
+      xml2json.parse(response.body);
+      String jsonString = xml2json.toParker();
+      var jsonData = jsonDecode(jsonString);
+      print('BUS_API_TEST: ${jsonData}');
     } else {
-      print('Error: ${response.statusCode} ${response.reasonPhrase}'); // 오류 처리
+      print('Error: ${response.statusCode} ${response.reasonPhrase}');
     }
   } catch (e) {
-    print('Exception: $e'); // 예외 처리
+    print('Exception: $e');
   }
 }
 
@@ -62,7 +61,7 @@ Future<void> getStationByPos(LatLng _currentPosition, Function callback) async {
         String stationTp = item['stationTp'].toString(); //정류소타입
         String stationNm = item['stationNm'].toString(); //정류소명
         String stationId = item['stationId'].toString(); //정류소 고유 ID
-        busstationList.add(BusStationInfo(
+        BusStationInfo busStation = BusStationInfo(
             arsId: arsId,
             posX: posX,
             posY: posY,
@@ -71,10 +70,10 @@ Future<void> getStationByPos(LatLng _currentPosition, Function callback) async {
             gpsY: gpsY,
             stationTp: stationTp,
             stationNm: stationNm,
-            stationId: stationId
-        ));
-        List<BusInfo> busList = await getStationByUid(arsId);
-        callback(LatLng(double.parse(gpsY), double.parse(gpsX)), stationNm, busList);
+            stationId: stationId,
+        );
+        busstationList.add(busStation);
+        callback(busStation);
       });
 
     } else {
