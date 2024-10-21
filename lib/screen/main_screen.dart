@@ -2,6 +2,10 @@ import 'package:bus_alarm_app/model/bus_station_info_model.dart';
 import 'package:bus_alarm_app/screen/map_screen.dart';
 import 'package:bus_alarm_app/service/local_storage_service.dart';
 import 'package:flutter/material.dart';
+import 'package:bus_alarm_app/widget/modal/bottom_sheet_modal.dart';
+
+import '../model/bus_info_model.dart';
+import '../service/app_service.dart'; // BottomSheetModal 임포트
 
 class MainScreen extends StatefulWidget {
   @override
@@ -73,7 +77,7 @@ class _MainScreenState extends State<MainScreen> {
               right: 20,
               top: 120,
               child: Container(
-                height: MediaQuery.of(context).size.height - 220, // 버튼 높이와 여백 제외
+                height: MediaQuery.of(context).size.height - 220,
                 child: favoriteStations.isEmpty
                     ? Center(
                   child: Text(
@@ -91,6 +95,10 @@ class _MainScreenState extends State<MainScreen> {
                       child: ListTile(
                         title: Text(station.stationNm),
                         subtitle: Text('ARS ID: ${station.arsId}'),
+                        onTap: () {
+                          // BottomSheetModal을 열도록 설정
+                          _showBottomSheetModal(station);
+                        },
                       ),
                     );
                   },
@@ -100,6 +108,21 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showBottomSheetModal(BusStationInfo station) async {
+    List<BusInfo> busList = await getStationByUid(station.arsId); // ARS ID를 사용하여 버스 목록 가져오기
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return BottomSheetModal(
+          busList: busList, // 가져온 버스 목록 전달
+          busStation: station,
+          initLikeList: favoriteStations,
+        );
+      },
     );
   }
 }
