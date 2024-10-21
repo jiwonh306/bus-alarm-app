@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:bus_alarm_app/widget/modal/bottom_sheet_modal.dart';
 
 import '../model/bus_info_model.dart';
-import '../service/app_service.dart'; // BottomSheetModal 임포트
+import '../service/app_service.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -32,6 +32,16 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('버스 알람 앱'),
+        backgroundColor: Color(0xFF6b8e23),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.login),
+            onPressed: () {
+              // 로그인 버튼 클릭 시 동작할 코드 작성
+              // 예: 로그인 화면으로 이동
+            },
+          ),
+        ],
       ),
       body: Container(
         color: Colors.white,
@@ -46,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
                 height: 80,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
+                    backgroundColor: Colors.white, // 올리브색으로 변경
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -61,11 +71,11 @@ class _MainScreenState extends State<MainScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.map, color: Colors.black),
+                      Icon(Icons.map, color: Color(0xFF6b8e23)), // 아이콘 색상 변경
                       SizedBox(width: 10),
                       Text(
                         '정류소 찾기',
-                        style: TextStyle(color: Colors.black),
+                        style: TextStyle(color: Color(0xFF444939)), // 텍스트 색상 변경
                       ),
                     ],
                   ),
@@ -121,6 +131,7 @@ class _MainScreenState extends State<MainScreen> {
           busList: busList, // 가져온 버스 목록 전달
           busStation: station,
           initLikeList: favoriteStations,
+          onFavoritesChanged: _loadFavorites, // 콜백 전달
         );
       },
     );

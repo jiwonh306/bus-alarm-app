@@ -75,13 +75,17 @@ class MapScreenState extends State<MapScreen> {
           busList: busList,
           busStation: busStation,
           initLikeList: likeList,
+          onFavoritesChanged: () {
+            setState(() {
+              // Call a method to refresh the markers if needed
+              // You can also reload your markers here if your logic requires
+              _markers.clear();
+              getStationByPos(_currentPosition, addMarker); // Reload markers
+            });
+          },
         );
       },
-    ).then((_) {
-      // 즐겨찾기 목록이 변경되었으면 현재 위치에 대한 마커를 다시 로드
-      _markers.clear();
-      getStationByPos(_currentPosition, addMarker); // 다시 마커 추가
-    });
+    );
   }
 
   @override

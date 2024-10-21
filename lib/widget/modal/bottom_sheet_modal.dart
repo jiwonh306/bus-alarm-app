@@ -1,22 +1,26 @@
 import 'package:bus_alarm_app/model/bus_route_info_model.dart';
 import 'package:bus_alarm_app/model/bus_station_info_model.dart';
-import 'package:bus_alarm_app/model/route_info_model.dart';
 import 'package:bus_alarm_app/service/local_storage_service.dart';
-import 'package:bus_alarm_app/util/bus_type_change.dart';
 import 'package:flutter/material.dart';
 
 import '../../model/bus_info_model.dart';
 import '../../screen/route_screen.dart';
 import '../../service/app_service.dart';
+import '../../util/bus_type_change.dart';
 
 class BottomSheetModal extends StatefulWidget {
   final List<BusInfo> busList;
-  late List<BusStationInfo> likeList = [];
   final List<BusStationInfo> initLikeList;
   final BusStationInfo busStation;
+  final Function onFavoritesChanged; // New callback parameter
   BookmarkService bookmarkService = BookmarkService();
 
-  BottomSheetModal({required this.busList, required this.busStation, required this.initLikeList});
+  BottomSheetModal({
+    required this.busList,
+    required this.busStation,
+    required this.initLikeList,
+    required this.onFavoritesChanged, // Initialize the callback
+  });
 
   @override
   _BottomSheetModalState createState() => _BottomSheetModalState();
@@ -29,20 +33,20 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
   void initState() {
     super.initState();
     setState(() {
-      widget.likeList = widget.initLikeList;
-      isLike = widget.likeList.any((item) => item.arsId == widget.busStation.arsId);
+      isLike = widget.initLikeList.any((item) => item.arsId == widget.busStation.arsId);
     });
   }
 
   void toggleLike() {
     setState(() {
       if (isLike) {
-        widget.likeList.removeWhere((item) => item.arsId == widget.busStation.arsId);
+        widget.initLikeList.removeWhere((item) => item.arsId == widget.busStation.arsId);
       } else {
-        widget.likeList.add(widget.busStation);
+        widget.initLikeList.add(widget.busStation);
       }
       isLike = !isLike;
-      widget.bookmarkService.saveBookmarks(widget.likeList);
+      widget.bookmarkService.saveBookmarks(widget.initLikeList);
+      widget.onFavoritesChanged(); // Call the callback to notify MainScreen
     });
   }
 
@@ -62,7 +66,6 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
                 icon: isLike ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.grey),
                 onPressed: () {
                   toggleLike();
-                  // 즐겨찾기 상태 변경 후에 context를 사용하여 Modal을 닫지 않음
                 },
               ),
             ],
