@@ -1,6 +1,6 @@
 import 'package:bus_alarm_app/model/bus_station_info_model.dart';
 import 'package:bus_alarm_app/screen/map_screen.dart';
-import 'package:bus_alarm_app/service/local_storage_service.dart'; // BookmarkService 추가
+import 'package:bus_alarm_app/service/local_storage_service.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
@@ -47,17 +47,18 @@ class _MainScreenState extends State<MainScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => MapScreen()),
                     );
+                    _loadFavorites(); // 돌아올 때 즐겨찾기 목록 갱신
                   },
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // 중앙 정렬
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.map, color: Colors.black), // 아이콘 추가
-                      SizedBox(width: 10), // 아이콘과 텍스트 간격
+                      Icon(Icons.map, color: Colors.black),
+                      SizedBox(width: 10),
                       Text(
                         '정류소 찾기',
                         style: TextStyle(color: Colors.black),
@@ -70,16 +71,21 @@ class _MainScreenState extends State<MainScreen> {
             Positioned(
               left: 20,
               right: 20,
-              top: 120, // Adjust the top position for the new button
+              top: 120,
               child: Container(
+                height: MediaQuery.of(context).size.height - 220, // 버튼 높이와 여백 제외
                 child: favoriteStations.isEmpty
-                    ? Text(
-                  '즐겨찾기된 정류소가 없습니다.',
-                  style: TextStyle(fontSize: 18, color: Colors.black),
-                  textAlign: TextAlign.center,
+                    ? Center(
+                  child: Text(
+                    '즐겨찾기된 정류소가 없습니다.',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                    textAlign: TextAlign.center,
+                  ),
                 )
-                    : Column(
-                  children: favoriteStations.map((station) {
+                    : ListView.builder(
+                  itemCount: favoriteStations.length,
+                  itemBuilder: (context, index) {
+                    final station = favoriteStations[index];
                     return Card(
                       margin: EdgeInsets.symmetric(vertical: 5),
                       child: ListTile(
@@ -87,7 +93,7 @@ class _MainScreenState extends State<MainScreen> {
                         subtitle: Text('ARS ID: ${station.arsId}'),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
               ),
             ),

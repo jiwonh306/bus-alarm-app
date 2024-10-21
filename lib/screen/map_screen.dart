@@ -1,132 +1,103 @@
 import 'package:bus_alarm_app/model/bus_station_info_model.dart';
-import 'package:bus_alarm_app/service/app_service.dart';
-import 'package:flutter/material.dart'; // Flutter UI 구성 요소
-import 'package:google_maps_flutter/google_maps_flutter.dart'; // Google Maps Flutter 패키지
+import 'package:bus_alarm_app/service/local_storage_service.dart';
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-
 import '../model/bus_info_model.dart';
-import '../service/local_storage_service.dart';
-import '../widget/modal/bottom_sheet_modal.dart'; // 위치 정보 접근 패키지
+import '../service/app_service.dart';
+import '../widget/modal/bottom_sheet_modal.dart';
 
-
-class MapScreen extends StatefulWidget { // 상태가 있는 MapScreen 클래스 정의
+class MapScreen extends StatefulWidget {
   @override
-  State<MapScreen> createState() => MapScreenState(); // 상태 관리 클래스 반환
+  State<MapScreen> createState() => MapScreenState();
 }
 
-class MapScreenState extends State<MapScreen> { // MapScreen의 상태 관리 클래스
-  late GoogleMapController mapController; // Google Map 컨트롤러
-  LatLng _currentPosition = const LatLng(37.49011964712499, 126.9546344219442 ); // 초기 서울 좌표
-  final Set<Marker> _markers = {}; // 지도에 표시할 마커 세트
+class MapScreenState extends State<MapScreen> {
+  late GoogleMapController mapController;
+  LatLng _currentPosition = const LatLng(37.49011964712499, 126.9546344219442);
+  final Set<Marker> _markers = {};
+  final BookmarkService bookmarkService = BookmarkService();
 
   @override
-  void initState() { // 위젯 초기화 메서드
+  void initState() {
     super.initState();
-    _getCurrentLocation(); // 현재 위치를 가져옴
+    _getCurrentLocation();
   }
 
-  void addMarker(BusStationInfo _busStation) {
-    LatLng position = LatLng(double.parse(_busStation.gpsY), double.parse(_busStation.gpsX));
-    String title = _busStation.stationNm;
-
-    setState(() { // 상태 변경
-      _markers.add( // 마커 추가
+  void addMarker(BusStationInfo busStation) {
+    LatLng position = LatLng(double.parse(busStation.gpsY), double.parse(busStation.gpsX));
+    setState(() {
+      _markers.add(
         Marker(
-            markerId: MarkerId(position.toString()), // 마커 ID 설정
-            position: position, // 마커 위치
-            infoWindow: InfoWindow( // 마커 정보창
-              title: title,
-            ),
-            icon: BitmapDescriptor.defaultMarker, // 기본 마커 아이콘
-            onTap: (){
-              _onMarkerTapped(_busStation);
-            }
+          markerId: MarkerId(busStation.arsId),
+          position: position,
+          infoWindow: InfoWindow(title: busStation.stationNm),
+          onTap: () => _onMarkerTapped(busStation),
         ),
       );
-      mapController.animateCamera( // 카메라 위치 이동
-        CameraUpdate.newLatLng(_currentPosition), // 현재 위치로 이동
-      );
     });
   }
 
-  Future<void> _getCurrentLocation() async { // 현재 위치 가져오기 메서드
-    bool serviceEnabled; // 위치 서비스 활성화 여부
-    LocationPermission permission; // 위치 권한
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled(); // 위치 서비스 활성화 확인
-    if (!serviceEnabled) { // 비활성화된 경우
-      return Future.error('Location services are disabled.'); // 오류 처리
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
     }
 
-    permission = await Geolocator.checkPermission(); // 권한 확인
-    if (permission == LocationPermission.denied) { // 권한이 거부된 경우
-      permission = await Geolocator.requestPermission(); // 권한 요청
-      if (permission == LocationPermission.denied) { // 여전히 거부된 경우
-        return Future.error('Location permissions are denied'); // 오류 처리
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse && permission != LocationPermission.always) {
+        return Future.error('Location permissions are denied');
       }
     }
-    if (permission == LocationPermission.deniedForever) { // 권한이 영구적으로 거부된 경우
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.'); // 오류 처리
-    }
 
-    // 현재 위치를 가져옴
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high); // 높은 정확도로 위치 가져오기
-    setState(() { // 상태 변경
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
-      getStationByPos(_currentPosition, addMarker);
-      // 현재 위치 업데이트
-      // 지도 카메라를 현재 위치로 이동
-      mapController.animateCamera(
-        CameraUpdate.newLatLng(_currentPosition), // 카메라 이동
-      );
-    });
-
-    Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-      ),
-    ).listen((Position position) {
-      setState(() {
-        getStationByPos(LatLng(position.latitude, position.longitude), addMarker);
-      });
+      mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
+      getStationByPos(_currentPosition, addMarker); // 현재 위치를 기반으로 마커 추가
     });
   }
 
-  void _onMapCreated(GoogleMapController controller) { // 지도 생성 시 호출되는 메서드
-    mapController = controller; // Google Map 컨트롤러 설정
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
   }
 
   Future<void> _onMarkerTapped(BusStationInfo busStation) async {
     List<BusInfo> busList = await getStationByUid(busStation.arsId);
-    BookmarkService bookmarkService = BookmarkService();
-    
-    bookmarkService.loadBookmarks().then((likeList) {
-      showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return BottomSheetModal(busList: busList, busStation: busStation, initLikeList: likeList); // MyBottomSheet를 호출
-        },
-      );
+    List<BusStationInfo> likeList = await bookmarkService.loadBookmarks();
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return BottomSheetModal(
+          busList: busList,
+          busStation: busStation,
+          initLikeList: likeList,
+        );
+      },
+    ).then((_) {
+      // 즐겨찾기 목록이 변경되었으면 현재 위치에 대한 마커를 다시 로드
+      _markers.clear();
+      getStationByPos(_currentPosition, addMarker); // 다시 마커 추가
     });
   }
 
   @override
-  Widget build(BuildContext context) { // UI 빌드 메서드
-    return Scaffold( // 기본 구조
-      appBar: AppBar( // 앱바
-        title: Text('정류장 찾기'), // 앱 제목
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('정류장 찾기'),
       ),
-      body: GoogleMap( // Google Map 위젯
-        onMapCreated: _onMapCreated, // 지도 생성 시 호출
-        initialCameraPosition: CameraPosition( // 초기 카메라 위치
-          target: _currentPosition, // 현재 위치
-          zoom: 14.0, // 줌 레벨
+      body: GoogleMap(
+        onMapCreated: _onMapCreated,
+        initialCameraPosition: CameraPosition(
+          target: _currentPosition,
+          zoom: 14.0,
         ),
-        markers: _markers, // 표시할 마커
-        myLocationEnabled: true, // 내 위치 버튼 활성화
+        markers: _markers,
+        myLocationEnabled: true,
       ),
     );
   }
