@@ -49,6 +49,8 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
       isLike = !isLike;
       widget.bookmarkService.saveBookmarks(widget.likeList);
     });
+
+
   }
 
   @override
@@ -67,7 +69,6 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
               icon: isLike ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.grey),
               onPressed: () {
                 toggleLike();
-                print(isLike);
               },
             ),
           ]
