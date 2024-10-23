@@ -8,19 +8,33 @@ class AlarmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController controller = TextEditingController();
+    final TextEditingController controllerBefore = TextEditingController();
+
+    // 도착 시간을 파싱하여 남은 시간을 초로 반환하는 함수
+    int parseArrmsg(String arrmsg) {
+      final RegExp regex = RegExp(r'(\d+)분(?:\s*(\d+)초)?후');
+      final match = regex.firstMatch(arrmsg.replaceAll(' ', '')); // 공백 제거
+
+      if (match != null) {
+        int minutes = int.parse(match.group(1) ?? '0');
+        int seconds = int.parse(match.group(2) ?? '0');
+        return (minutes * 60) + seconds; // 총 초로 반환
+      }
+
+      return 0; // 파싱 실패 시 0초 반환
+    }
 
     return AlertDialog(
       title: Text('알람 설정'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('이 버스는 "$arrmsg" 도착합니다. 몇 분 후에 알람을 설정하시겠습니까?'),
+          Text('이 버스는 "$arrmsg" 도착합니다. 알람을 몇 분 전 설정하시겠습니까?'),
           TextField(
-            controller: controller,
+            controller: controllerBefore,
             decoration: InputDecoration(
-              labelText: '분',
-              hintText: '예: 5분',
+              labelText: '도착 몇 분 전',
+              hintText: '예: 3분 전',
               border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
@@ -36,8 +50,20 @@ class AlarmDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
-            int minutes = int.tryParse(controller.text) ?? 0;
-            onSetAlarm(minutes);
+            int remainingTime = parseArrmsg(arrmsg);
+            int userInputBefore = int.tryParse(controllerBefore.text) ?? 0;
+            print(remainingTime);
+            print(22222222);
+            // 도착 시간에서 사용자가 입력한 시간만큼 뺀 후 알람을 설정
+            int alarmTimeInMinutes = (remainingTime ~/ 60) - userInputBefore;
+
+            // 최소 1분 후 알람으로 설정
+            if (alarmTimeInMinutes > 0) {
+              onSetAlarm(alarmTimeInMinutes);
+            } else {
+              onSetAlarm(1);
+            }
+
             Navigator.of(context).pop();
           },
           child: Text('설정'),
