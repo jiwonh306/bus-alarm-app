@@ -31,17 +31,8 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('버스 알람 앱'),
+        title: Text('버스 알리미'),
         backgroundColor: Color(0xFF6b8e23),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.login),
-            onPressed: () {
-              // 로그인 버튼 클릭 시 동작할 코드 작성
-              // 예: 로그인 화면으로 이동
-            },
-          ),
-        ],
       ),
       body: Container(
         color: Colors.white,
@@ -56,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
                 height: 80,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 올리브색으로 변경
+                    backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -66,16 +57,16 @@ class _MainScreenState extends State<MainScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => MapScreen()),
                     );
-                    _loadFavorites(); // 돌아올 때 즐겨찾기 목록 갱신
+                    _loadFavorites();
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.map, color: Color(0xFF6b8e23)), // 아이콘 색상 변경
+                      Icon(Icons.map, color: Color(0xFF6b8e23)),
                       SizedBox(width: 10),
                       Text(
                         '정류소 찾기',
-                        style: TextStyle(color: Color(0xFF444939)), // 텍스트 색상 변경
+                        style: TextStyle(color: Color(0xFF444939)),
                       ),
                     ],
                   ),
@@ -106,7 +97,6 @@ class _MainScreenState extends State<MainScreen> {
                         title: Text(station.stationNm),
                         subtitle: Text('ARS ID: ${station.arsId}'),
                         onTap: () {
-                          // BottomSheetModal을 열도록 설정
                           _showBottomSheetModal(station);
                         },
                       ),
@@ -122,16 +112,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _showBottomSheetModal(BusStationInfo station) async {
-    List<BusInfo> busList = await getStationByUid(station.arsId); // ARS ID를 사용하여 버스 목록 가져오기
+    List<BusInfo> busList = await getStationByUid(station.arsId);
 
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return BottomSheetModal(
-          busList: busList, // 가져온 버스 목록 전달
+          busList: busList,
           busStation: station,
           initLikeList: favoriteStations,
-          onFavoritesChanged: _loadFavorites, // 콜백 전달
+          onFavoritesChanged: _loadFavorites,
         );
       },
     );
