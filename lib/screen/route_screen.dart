@@ -1,7 +1,10 @@
 import 'package:bus_alarm_app/util/date_format_util.dart';
 import 'package:flutter/material.dart';
+import '../model/bus_info_model.dart';
 import '../model/bus_route_info_model.dart';
+import '../model/bus_station_info_model.dart';
 import '../model/route_info_model.dart';
+import '../widget/modal/bottom_sheet_modal.dart';
 
 class BusRoute {
   final String routeName;
@@ -34,6 +37,7 @@ class RouteScreen extends StatelessWidget {
   final List<RouteInfo> routeInfo;
   late List<BusRoute> busRoutes;
   final List<String> busPosList;
+
 
   RouteScreen({super.key, required this.busRouteInfo, required this.routeInfo, required this.busPosList}) {
     busRoutes = [
@@ -93,10 +97,7 @@ class RouteScreen extends StatelessWidget {
                       isLastStop: stopIndex == route.stops.length - 1,
                       isBusHere: busPosList.contains(stop.seq),
                       onTap: () {
-                        // 클릭 시 동작: 정류장 정보 출력
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Clicked on ${stop.busRouteNm}')),
-                        );
+
                       },
                     ),
                   );

@@ -53,18 +53,37 @@ class AlarmDialog extends StatelessWidget {
             int remainingTime = parseArrmsg(arrmsg);
             int userInputBefore = int.tryParse(controllerBefore.text) ?? 0;
             print(remainingTime);
-            print(22222222);
+            print(2222222222);
             // 도착 시간에서 사용자가 입력한 시간만큼 뺀 후 알람을 설정
             int alarmTimeInMinutes = (remainingTime ~/ 60) - userInputBefore;
-
-            // 최소 1분 후 알람으로 설정
-            if (alarmTimeInMinutes > 0) {
-              onSetAlarm(alarmTimeInMinutes);
+            print(alarmTimeInMinutes);
+            print(3333333333333);
+            if (userInputBefore > remainingTime ~/ 60) {
+              // 설정한 시간이 예상 시간보다 클 경우 경고 메시지
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('경고'),
+                  content: Text('설정한 시간이 예상 시간보다 깁니다.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // 경고 대화 상자 닫기
+                      },
+                      child: Text('확인'),
+                    ),
+                  ],
+                ),
+              );
             } else {
-              onSetAlarm(1);
+              // 최소 1분 후 알람으로 설정
+              if (alarmTimeInMinutes > 0) {
+                onSetAlarm(alarmTimeInMinutes);
+              } else {
+                onSetAlarm(1);
+              }
+              Navigator.of(context).pop();
             }
-
-            Navigator.of(context).pop();
           },
           child: Text('설정'),
         ),

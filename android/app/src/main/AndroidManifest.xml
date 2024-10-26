@@ -8,9 +8,9 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
-        android:label="bus_alarm_app"
+        android:label="서울\n버스탈래요"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/bus_alarm_app">
         <activity
             android:name=".MainActivity"
             android:exported="true"

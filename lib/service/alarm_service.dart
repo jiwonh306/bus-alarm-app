@@ -6,7 +6,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 
 Future<void> initLocalNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+  AndroidInitializationSettings('@mipmap/bus_alarm_app');
 
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
@@ -23,9 +23,9 @@ Future<void> scheduleAlarm(int minutes) async {
   final tz.TZDateTime scheduledTZDateTime = tz.TZDateTime.from(scheduledNotificationDateTime, tz.local);
 
   const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-    '1', // 고유한 채널 ID
-    '버스 알람', // 채널 이름
-    channelDescription: '버스 도착 알림을 위한 채널입니다.', // 채널 설명 (named parameter)
+    '1',
+    '버스 알람',
+    channelDescription: '버스 도착 알림을 위한 채널입니다.',
     importance: Importance.max,
     priority: Priority.high,
     showWhen: false,
