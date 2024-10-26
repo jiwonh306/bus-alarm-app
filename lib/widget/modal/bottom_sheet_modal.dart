@@ -15,14 +15,14 @@ class BottomSheetModal extends StatefulWidget {
   final List<BusInfo> busList;
   final List<BusStationInfo> initLikeList;
   final BusStationInfo busStation;
-  final Function onFavoritesChanged; // 즐겨찾기 변경 콜백
-  BookmarkService bookmarkService = BookmarkService();
+  final Function onFavoritesChanged;
+  final BookmarkService bookmarkService = BookmarkService();
 
   BottomSheetModal({
     required this.busList,
     required this.busStation,
     required this.initLikeList,
-    required this.onFavoritesChanged, // 콜백 초기화
+    required this.onFavoritesChanged,
   });
 
   @override
@@ -35,12 +35,17 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
   @override
   void initState() {
     super.initState();
+    _initializeLikeStatus();
+  }
+
+  Future<void> _initializeLikeStatus() async {
+    List<BusStationInfo> bookmarks = await widget.bookmarkService.loadBookmarks();
     setState(() {
-      isLike = widget.initLikeList.any((item) => item.arsId == widget.busStation.arsId);
+      isLike = bookmarks.any((item) => item.arsId == widget.busStation.arsId);
     });
   }
 
-  void toggleLike() {
+  Future<void> toggleLike() async {
     setState(() {
       if (isLike) {
         widget.initLikeList.removeWhere((item) => item.arsId == widget.busStation.arsId);
@@ -48,9 +53,10 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
         widget.initLikeList.add(widget.busStation);
       }
       isLike = !isLike;
-      widget.bookmarkService.saveBookmarks(widget.initLikeList);
-      widget.onFavoritesChanged(); // MainScreen에 알리기 위해 콜백 호출
     });
+    // 비동기적으로 즐겨찾기 저장
+    await widget.bookmarkService.saveBookmarks(widget.initLikeList);
+    widget.onFavoritesChanged(); // MainScreen에 알리기 위해 콜백 호출
   }
 
   void _showAlarmDialog(String arrmsg) {
@@ -82,8 +88,8 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
             actions: [
               IconButton(
                 icon: isLike ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.grey),
-                onPressed: () {
-                  toggleLike();
+                onPressed: () async {
+                  await toggleLike(); // 비동기 호출로 변경
                 },
               ),
             ],
@@ -151,3 +157,4 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
     );
   }
 }
+
