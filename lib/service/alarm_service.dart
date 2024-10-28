@@ -6,7 +6,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 
 Future<void> initLocalNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/bus_alarm_app');
+  AndroidInitializationSettings('@mipmap/ic_launcher');
 
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,

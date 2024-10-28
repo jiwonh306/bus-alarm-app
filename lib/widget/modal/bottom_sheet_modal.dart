@@ -65,14 +65,15 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
       builder: (BuildContext context) {
         return AlarmDialog(
           arrmsg: arrmsg,
-          onSetAlarm: (minutes) {
+          onSetAlarm: (minutes, userInput) {
             scheduleAlarm(minutes); // 알람 설정
-            print('알람이 $minutes 분 후에 설정되었습니다.');
+            print('알람이 $minutes 분 후에 설정되었습니다. 사용자 입력: $userInput');
           },
         );
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +90,7 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
               IconButton(
                 icon: isLike ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.grey),
                 onPressed: () async {
-                  await toggleLike(); // 비동기 호출로 변경
+                  await toggleLike();
                 },
               ),
             ],

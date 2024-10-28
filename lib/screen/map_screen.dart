@@ -77,10 +77,8 @@ class MapScreenState extends State<MapScreen> {
           initLikeList: likeList,
           onFavoritesChanged: () {
             setState(() {
-              // Call a method to refresh the markers if needed
-              // You can also reload your markers here if your logic requires
               _markers.clear();
-              getStationByPos(_currentPosition, addMarker); // Reload markers
+              getStationByPos(_currentPosition, addMarker);
             });
           },
         );

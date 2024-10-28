@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AlarmDialog extends StatelessWidget {
   final String arrmsg;
-  final Function(int) onSetAlarm;
+  final Function(int, String) onSetAlarm;
 
   AlarmDialog({required this.arrmsg, required this.onSetAlarm});
 
@@ -10,18 +10,50 @@ class AlarmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextEditingController controllerBefore = TextEditingController();
 
-    // 도착 시간을 파싱하여 남은 시간을 초로 반환하는 함수
     int parseArrmsg(String arrmsg) {
       final RegExp regex = RegExp(r'(\d+)분(?:\s*(\d+)초)?후');
-      final match = regex.firstMatch(arrmsg.replaceAll(' ', '')); // 공백 제거
+      final match = regex.firstMatch(arrmsg.replaceAll(' ', ''));
 
       if (match != null) {
         int minutes = int.parse(match.group(1) ?? '0');
         int seconds = int.parse(match.group(2) ?? '0');
-        return (minutes * 60) + seconds; // 총 초로 반환
+        return (minutes * 60) + seconds;
       }
 
-      return 0; // 파싱 실패 시 0초 반환
+      return 0;
+    }
+
+    void showTopMessage(String message) {
+      final overlay = Overlay.of(context);
+      final overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          top: 50.0, // 원하는 위치 조정
+          left: 0,
+          right: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              margin: EdgeInsets.symmetric(horizontal: 20.0),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Text(
+                message,
+                style: TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      overlay.insert(overlayEntry);
+
+      Future.delayed(Duration(seconds: 6), () {
+        overlayEntry.remove();
+      });
     }
 
     return AlertDialog(
@@ -53,6 +85,7 @@ class AlarmDialog extends StatelessWidget {
             int remainingTime = parseArrmsg(arrmsg);
             int userInputBefore = int.tryParse(controllerBefore.text) ?? 0;
             int alarmTimeInMinutes = (remainingTime ~/ 60) - userInputBefore;
+
             if (userInputBefore > remainingTime ~/ 60) {
               showDialog(
                 context: context,
@@ -71,11 +104,12 @@ class AlarmDialog extends StatelessWidget {
               );
             } else {
               if (alarmTimeInMinutes > 0) {
-                onSetAlarm(alarmTimeInMinutes);
+                onSetAlarm(alarmTimeInMinutes, controllerBefore.text);
               } else {
-                onSetAlarm(1);
+                onSetAlarm(1, controllerBefore.text);
               }
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // AlertDialog를 닫습니다.
+              showTopMessage('${alarmTimeInMinutes}분 후에 알람이 설정되었습니다.'); // 메시지 표시
             }
           },
           child: Text('설정'),
