@@ -43,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('버스 알리미'),
+        title: Text('버스위치톡'),
         backgroundColor: Color(0xFF6b8e23),
       ),
       body: Container(

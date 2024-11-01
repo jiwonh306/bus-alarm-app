@@ -108,7 +108,7 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          bus.rtNm,
+                          bus.rtNm, //버스 이름
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(width: 8.0),
@@ -116,13 +116,13 @@ class _BottomSheetModalState extends State<BottomSheetModal> {
                           convertBusType(bus.routeType),
                           style: TextStyle(
                             fontSize: 12.0,
-                            color: convertBusTypeColor(convertBusType(bus.routeType)),
+                            color: convertBusTypeColor(convertBusType(bus.routeType)), //버스 타입
                           ),
                         ),
                         SizedBox(width: 8.0),
                       ],
                     ),
-                    subtitle: Text(bus.arrmsg1),
+                    subtitle: Text(bus.arrmsg1), //버스 예상도착시간
                     trailing: InkWell(
                       onTap: () {
                         _showAlarmDialog(bus.arrmsg1);

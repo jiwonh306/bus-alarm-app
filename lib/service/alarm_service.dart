@@ -16,7 +16,6 @@ Future<void> initLocalNotifications() async {
 }
 
 Future<void> scheduleAlarm(int minutes) async {
-  print(1111112111);
   final DateTime scheduledNotificationDateTime =
   DateTime.now().add(Duration(minutes: minutes));
   print('알람 설정 시간: $scheduledNotificationDateTime');

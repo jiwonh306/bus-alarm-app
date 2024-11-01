@@ -6,15 +6,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:xml2json/xml2json.dart';
-
-
-
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:bus_alarm_app/util/config.dart';
 import '../model/bus_route_info_model.dart';
 
 Future<void> getArrInfoByRouteAll() async { // 특정 버스 노선의 도착 정보 가져오기
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRouteAll'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '?ServiceKey=${Config.serviceKey}'
         '&busRouteId=100100016');
     final response = await http.get(url, headers: {
       HttpHeaders.contentTypeHeader: 'application/json',
@@ -37,7 +37,7 @@ Future<void> getStationByPos(LatLng _currentPosition, Function callback) async {
   List<BusStationInfo> busstationList = [];
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/stationinfo/getStationByPos'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '?ServiceKey=${Config.serviceKey}'
         '&tmX=${_currentPosition.longitude}' // 현재 위치의 경도
         '&tmY=${_currentPosition.latitude}' // 현재 위치의 위도
         '&radius=200'
@@ -88,7 +88,7 @@ Future<List<BusInfo>> getStationByUid(String arsId) async {
   List<BusInfo> busList = [];
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '?ServiceKey=${Config.serviceKey}'
         '&arsId=$arsId'
         '&resultType=json'
     );
@@ -216,7 +216,7 @@ Future<List<BusRouteInfo>> getRouteInfo(String busRouteId) async {
   List<BusRouteInfo> busrouteList = [];
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/busRouteInfo/getRouteInfo'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '?ServiceKey=${Config.serviceKey}'
         '&busRouteId=$busRouteId'
         '&resultType=json'
     );
@@ -273,7 +273,7 @@ Future<List<RouteInfo>> getStaionByRoute(String busRouteId) async {
   List<RouteInfo> routeList = [];
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/busRouteInfo/getStaionByRoute'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '?ServiceKey=${Config.serviceKey}'
         '&busRouteId=$busRouteId'
         '&resultType=json'
     );
@@ -344,7 +344,7 @@ Future<List<String>> getBusPosByRouteSt(String busRouteId, String endOrd) async 
   List<String> busPosList = [];
   try {
     final url = Uri.parse('http://ws.bus.go.kr/api/rest/buspos/getBusPosByRouteSt'
-        '?ServiceKey=C1xlYgGuqhzV%2ByBIrUZqZRpEVWsAcp36U%2Fp8W71wN18sSy%2FA3ooEhyrMm0SJu9uR56w0Tl4WQLK7df%2FsPvqenA%3D%3D'
+        '?ServiceKey=${Config.serviceKey}'
         '&busRouteId=$busRouteId'
         '&startOrd=1'
         '&endOrd=$endOrd'

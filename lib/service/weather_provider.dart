@@ -36,7 +36,6 @@ class WeatherProvider with ChangeNotifier {
       _weather.temp = weatherData['main']['temp'];
       _weather.temp = (_weather.temp! * 10).roundToDouble() / 10;
     }
-
     notifyListeners();
   }
 }

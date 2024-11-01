@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
-        android:label="버스나우"
+        android:label="버스위치톡"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -135,7 +135,6 @@ class BusStopTile extends StatelessWidget {
         children: [
           Column(
             children: [
-
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -143,7 +142,7 @@ class BusStopTile extends StatelessWidget {
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: Colors.blue,
+                      color: Color(0xFF6b8e23),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -156,7 +155,7 @@ class BusStopTile extends StatelessWidget {
                 Container(
                   width: 2,
                   height: 50,
-                  color: Colors.blue,
+                  color: Color(0xFF6b8e23),
                 ),
             ],
           ),
